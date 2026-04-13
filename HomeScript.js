@@ -6,6 +6,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   gsap.registerPlugin(ScrollTrigger);
 
+  function setRealViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }
+
+  function refreshLayout() {
+    setRealViewportHeight();
+    ScrollTrigger.refresh();
+  }
+
+  setRealViewportHeight();
+
   const mm = gsap.matchMedia();
 
   mm.add(
@@ -19,10 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll("[data-parallax-layers]").forEach((triggerElement) => {
         const layers = mobile
           ? [
-              { layer: "1", yPercent: 14 },
-              { layer: "2", yPercent: 8 },
-              { layer: "3", yPercent: 5 },
-              { layer: "4", yPercent: 3 }
+              { layer: "1", yPercent: 10 },
+              { layer: "2", yPercent: 6 },
+              { layer: "3", yPercent: 4 },
+              { layer: "4", yPercent: 2.5 }
             ]
           : [
               { layer: "1", yPercent: 24 },
@@ -60,6 +72,36 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   );
+
+  const images = Array.from(document.querySelectorAll(".parallax__layer-img"));
+
+  Promise.all(
+    images.map((img) => {
+      if (img.complete) return Promise.resolve();
+
+      return new Promise((resolve) => {
+        img.addEventListener("load", resolve, { once: true });
+        img.addEventListener("error", resolve, { once: true });
+      });
+    })
+  ).then(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        refreshLayout();
+      });
+    });
+  });
+
+  window.addEventListener("load", refreshLayout);
+  window.addEventListener("resize", refreshLayout);
+  window.addEventListener("pageshow", refreshLayout);
+  window.addEventListener("orientationchange", () => {
+    setTimeout(refreshLayout, 150);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(refreshLayout);
+  }
 
   if (typeof Lenis !== "undefined") {
     const lenis = new Lenis({
