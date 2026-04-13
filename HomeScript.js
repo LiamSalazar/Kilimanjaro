@@ -1,36 +1,78 @@
 document.addEventListener("DOMContentLoaded", () => {
-	// Register GSAP Plugins
+  if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
+    console.error("GSAP o ScrollTrigger no están cargados.");
+    return;
+  }
+
   gsap.registerPlugin(ScrollTrigger);
-  // Parallax Layers
-  document.querySelectorAll('[data-parallax-layers]').forEach((triggerElement) => {
-    let tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: triggerElement,
-        start: "0% 0%",
-        end: "100% 0%",
-        scrub: 0
-      }
+
+  const mm = gsap.matchMedia();
+
+  mm.add(
+    {
+      mobile: "(max-width: 768px)",
+      desktop: "(min-width: 769px)",
+    },
+    (context) => {
+      const { mobile } = context.conditions;
+
+      document.querySelectorAll("[data-parallax-layers]").forEach((triggerElement) => {
+        const layers = mobile
+          ? [
+              { layer: "1", yPercent: 14 },
+              { layer: "2", yPercent: 8 },
+              { layer: "3", yPercent: 5 },
+              { layer: "4", yPercent: 3 }
+            ]
+          : [
+              { layer: "1", yPercent: 24 },
+              { layer: "2", yPercent: 14 },
+              { layer: "3", yPercent: 8 },
+              { layer: "4", yPercent: 5 }
+            ];
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: triggerElement,
+            start: "top top",
+            end: "bottom top",
+            scrub: 0.8,
+            invalidateOnRefresh: true
+          }
+        });
+
+        layers.forEach((layerObj, index) => {
+          const elements = triggerElement.querySelectorAll(
+            `[data-parallax-layer="${layerObj.layer}"]`
+          );
+
+          if (!elements.length) return;
+
+          tl.to(
+            elements,
+            {
+              yPercent: layerObj.yPercent,
+              ease: "none"
+            },
+            index === 0 ? 0 : "<"
+          );
+        });
+      });
+    }
+  );
+
+  if (typeof Lenis !== "undefined") {
+    const lenis = new Lenis({
+      smoothWheel: true,
+      syncTouch: true
     });
-    const layers = [
-      { layer: "1", yPercent: 70 },
-      { layer: "2", yPercent: 55 },
-      { layer: "3", yPercent: 40 },
-      { layer: "4", yPercent: 10 }
-    ];
-    layers.forEach((layerObj, idx) => {
-      tl.to(
-        triggerElement.querySelectorAll(`[data-parallax-layer="${layerObj.layer}"]`),
-        {
-          yPercent: layerObj.yPercent,
-          ease: "none"
-        },
-        idx === 0 ? undefined : "<"
-      );
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
     });
-  });
+
+    gsap.ticker.lagSmoothing(0);
+  }
 });
-/* Lenis */
-const lenis = new Lenis();
-lenis.on('scroll', ScrollTrigger.update);
-gsap.ticker.add((time) => {lenis.raf(time * 1000);});
-gsap.ticker.lagSmoothing(0);
