@@ -282,13 +282,13 @@ button {
   .parallax__mountain {
     width: 198%;
     left: -49%;
-    bottom: 15%;
+    bottom: 14%;
   }
 
   .parallax__foreground {
     width: 206%;
     left: -53%;
-    bottom: -7%;
+    bottom: -9%;
     z-index: 6;
   }
 
